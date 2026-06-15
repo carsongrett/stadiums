@@ -219,6 +219,22 @@ const STADIUMS = [
   ["NFL","Jacksonville Jaguars","EverBank Stadium",30.3239,-81.6373,"images/nfl-jags-everbank.jpg"],
   ["NFL","San Francisco 49ers","Levi's Stadium",37.4033,-121.9694,"images/nfl-49ers-levis.jpg"],
   ["NFL","New Orleans Saints","Caesars Superdome",29.9511,-90.0812,"images/nfl-saints-caesars.jpg"],
+  ["NFL","Minnesota Vikings","U.S. Bank Stadium",44.9740,-93.2581,"images/nfl-vikings-usbank.webp"],
+  ["NFL","Atlanta Falcons","Mercedes-Benz Stadium",33.7554,-84.4010,"images/nfl-falcons-mercedes.jpg"],
+  ["NFL","Chicago Bears","Soldier Field",41.8623,-87.6167,"images/nfl-bears-soldier.webp"],
+  ["NFL","Tampa Bay Buccaneers","Raymond James Stadium",27.9759,-82.5033,"images/nfl-bucs-raymondjames.webp"],
+  ["NFL","Arizona Cardinals","State Farm Stadium",33.5276,-112.2626,"images/nfl-cardinals-statefarm.jpeg"],
+  ["MLB","Miami Marlins","loanDepot Park",25.7781,-80.2197,"images/mlb-marlins-loandepot.jpg"],
+  ["MLB","Los Angeles Dodgers","Dodger Stadium",34.0739,-118.2400,"images/mlb-dodgers.jpg"],
+  ["MLB","New York Yankees","Yankee Stadium",40.8296,-73.9262,"images/mlb-yankees.jpg"],
+  ["MLB","Chicago White Sox","Rate Field",41.8299,-87.6338,"images/mlb-whitesox-ratefield.jpg"],
+  ["MLB","San Francisco Giants","Oracle Park",37.7786,-122.3893,"images/mlb-giants-oracle.jpeg"],
+  ["MLB","Houston Astros","Daikin Park",29.7573,-95.3555,"images/mlb-astros-daikan.avif"],
+  ["MLB","Philadelphia Phillies","Citizens Bank Park",39.9061,-75.1665,"images/mlb-phillies-cbp.jpg"],
+  ["MLB","Atlanta Braves","Truist Park",33.8907,-84.4677,"images/mlb-braves-truist.jpg"],
+  ["MLB","Pittsburgh Pirates","PNC Park",40.4469,-80.0057,"images/mlb-pirates-pnc.jpg"],
+  ["NBA","Golden State Warriors","Chase Center",37.7680,-122.3877,"images/nba-warriors-chase.webp"],
+  ["NBA","Sacramento Kings","Golden 1 Center",38.5802,-121.4997,"images/nba-kings-golden1.jpg"],
 ];
 const LEAGUE_HEX = {MLB:"#d24b4b", NFL:"#5b9cff", NBA:"#c07bff"};
 const HS_KEY = "stadiumIQ_best";
@@ -387,7 +403,7 @@ function endGame(){
   showBest();
   document.getElementById("mRound").textContent=deck.length+"/"+deck.length;
   const rows=results.map(r=>`<div class="brow"><span class="bteam">${r.team}</span><span class="bdist num ${distClass(r.mi)}">${commaNum(Math.round(r.mi))} mi</span><span class="bpts num">+${commaNum(r.pts)}</span></div>`).join("");
-  const shareText=`Stadium IQ: ${commaNum(total)}/${commaNum(maxScore)} (${g}) \u2014 avg ${commaNum(Math.round(avgMi))} mi off`;
+  const shareText=`Stadium IQ: ${commaNum(total)}/${commaNum(maxScore)} \u2014 avg ${commaNum(Math.round(avgMi))} mi off`;
   document.getElementById("game").innerHTML=`<div class="end"><div class="grade" style="color:${gc}">${g}</div><div class="endscore">Final score &nbsp;<b class="num">${commaNum(total)}</b>&nbsp;/ ${commaNum(maxScore)}</div>${isNew?`<div class="hiscore new">New personal best!</div>`:(prevBest!=null?`<div class="hiscore">Personal best: ${commaNum(prevBest)}</div>`:"")}<div class="stats"><div class="stat"><div class="sk">Avg distance</div><div class="sv num">${commaNum(Math.round(avgMi))} mi</div></div><div class="stat"><div class="sk">Closest guess</div><div class="sv num">${commaNum(Math.round(best.mi))} mi</div></div><div class="stat"><div class="sk">Accuracy</div><div class="sv num">${Math.round(pct*100)}%</div></div></div><div class="breakdown">${rows}</div><div class="endbtns"><button id="again">Play again</button><button class="ghost" id="share">Share score</button></div></div>`;
   document.getElementById("again").onclick=start;
   document.getElementById("share").onclick=()=>{
