@@ -260,7 +260,6 @@ const STADIUMS = [
 ];
 const LEAGUE_HEX = {MLB:"#d24b4b", NFL:"#5b9cff", NBA:"#c07bff"};
 const DAILY_KEY = "stadiumIQ_daily";
-const MODE_KEY = "stadiumIQ_mode";
 const HS_KEY = "stadiumIQ_best";
 const DAILY_TZ = "America/Chicago";
 const PERFECT_MI = 25;
@@ -331,7 +330,6 @@ function initForMode(){
 function setMode(mode){
   if(mode===gameMode) return;
   gameMode=mode;
-  localStorage.setItem(MODE_KEY,mode);
   initForMode();
 }
 
@@ -513,7 +511,7 @@ document.getElementById("modeToggle").addEventListener("click",e=>{
   if(!btn||btn.dataset.mode===gameMode) return;
   setMode(btn.dataset.mode);
 });
-gameMode=localStorage.getItem(MODE_KEY)||"daily";
+gameMode="daily";
 initForMode();
 </script>
 </body>
