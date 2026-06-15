@@ -206,61 +206,23 @@
 
 <script>
 const STADIUMS = [
-  ["NBA","San Antonio Spurs","Frost Bank Center",29.4269,-98.4375],
-  ["MLB","Houston Astros","Daikin Park",29.7572,-95.3556],
   ["NFL","Green Bay Packers","Lambeau Field",44.5013,-88.0622,"images/nfl-packers-lambeau.jpg"],
-  ["NFL","Kansas City Chiefs","Arrowhead Stadium",39.0489,-94.4839],
-  ["NFL","Seattle Seahawks","Lumen Field",47.5952,-122.3316],
-  ["NFL","Dallas Cowboys","AT&T Stadium",32.7473,-97.0945],
+  ["NFL","Kansas City Chiefs","Arrowhead Stadium",39.0489,-94.4839,"images/nfl-chiefs-arrowhead.webp"],
   ["NFL","New England Patriots","Gillette Stadium",42.0909,-71.2643,"images/nfl-patriots-gillette.jpg"],
-  ["NFL","Denver Broncos","Empower Field at Mile High",39.7439,-105.0201],
-  ["NFL","Chicago Bears","Soldier Field",41.8623,-87.6167],
   ["NFL","Pittsburgh Steelers","Acrisure Stadium",40.4468,-80.0158,"images/nfl-steelers-acrisure.webp"],
   ["NFL","Indianapolis Colts","Lucas Oil Stadium",39.7600,-86.1637,"images/nfl-colts-lucas-oil.jpg"],
-  ["MLB","Boston Red Sox","Fenway Park",42.3467,-71.0972],
-  ["MLB","Chicago Cubs","Wrigley Field",41.9484,-87.6553],
-  ["MLB","Los Angeles Dodgers","Dodger Stadium",34.0739,-118.24],
-  ["MLB","San Francisco Giants","Oracle Park",37.7786,-122.3893],
-  ["MLB","Colorado Rockies","Coors Field",39.7559,-104.9942],
-  ["MLB","New York Yankees","Yankee Stadium",40.8296,-73.9262],
-  ["MLB","St. Louis Cardinals","Busch Stadium",38.6226,-90.1928],
-  ["NBA","Miami Heat","Kaseya Center",25.7814,-80.188],
-  ["NBA","Golden State Warriors","Chase Center",37.768,-122.3877],
-  ["NBA","Los Angeles Lakers","Crypto.com Arena",34.043,-118.2673],
-  ["NBA","Boston Celtics","TD Garden",42.3662,-71.0621],
-  ["NBA","Chicago Bulls","United Center",41.8807,-87.6742],
-  ["NBA","Phoenix Suns","Footprint Center",33.4457,-112.0712],
+  ["NFL","Carolina Panthers","Bank of America Stadium",35.2258,-80.8528,"images/nfl-panthers-bankofamerica.webp"],
+  ["NFL","Cincinnati Bengals","Paycor Stadium",39.0955,-84.5160,"images/nfl-bengals-paycor.jpg"],
+  ["NFL","Miami Dolphins","Hard Rock Stadium",25.9580,-80.2389,"images/nfl-dolphins-hardrock.jpg"],
+  ["NFL","Jacksonville Jaguars","EverBank Stadium",30.3239,-81.6373,"images/nfl-jags-everbank.jpg"],
+  ["NFL","San Francisco 49ers","Levi's Stadium",37.4033,-121.9694,"images/nfl-49ers-levis.jpg"],
+  ["NFL","New Orleans Saints","Caesars Superdome",29.9511,-90.0812,"images/nfl-saints-caesars.jpg"],
 ];
 const LEAGUE_HEX = {MLB:"#d24b4b", NFL:"#5b9cff", NBA:"#c07bff"};
 const HS_KEY = "stadiumIQ_best";
 const PERFECT_MI = 25;
 
-const MOCK_SIZES = [[1600,900],[1080,1350],[1000,1000],[2000,840],[1200,1600]];
-function mockPhoto(w,h,hex,label,team){
-  const abbr=team.split(" ").pop().slice(0,3).toUpperCase();
-  const svg=
-    "<svg xmlns='http://www.w3.org/2000/svg' width='"+w+"' height='"+h+"' viewBox='0 0 "+w+" "+h+"'>"
-    +"<defs><linearGradient id='s' x1='0' y1='0' x2='0' y2='1'>"
-    +"<stop offset='0' stop-color='#13203a'/><stop offset='1' stop-color='#0a1322'/></linearGradient></defs>"
-    +"<rect width='"+w+"' height='"+h+"' fill='url(#s)'/>"
-    +"<ellipse cx='"+(w/2)+"' cy='"+(h*0.72)+"' rx='"+(w*0.42)+"' ry='"+(h*0.16)+"' fill='#16351f' stroke='"+hex+"' stroke-width='3'/>"
-    +"<ellipse cx='"+(w/2)+"' cy='"+(h*0.72)+"' rx='"+(w*0.24)+"' ry='"+(h*0.085)+"' fill='none' stroke='#2f6b3e' stroke-width='2'/>"
-    +"<path d='M"+(w*0.06)+" "+(h*0.74)+" Q"+(w*0.5)+" "+(h*0.92)+" "+(w*0.94)+" "+(h*0.74)+" L"+(w*0.94)+" "+(h*0.58)+" Q"+(w*0.5)+" "+(h*0.72)+" "+(w*0.06)+" "+(h*0.58)+" Z' fill='"+hex+"' opacity='.16'/>"
-    +"<g fill='"+hex+"'><circle cx='"+(w*0.24)+"' cy='"+(h*0.2)+"' r='6'/><circle cx='"+(w*0.5)+"' cy='"+(h*0.14)+"' r='6'/><circle cx='"+(w*0.76)+"' cy='"+(h*0.2)+"' r='6'/></g>"
-    +"<text x='"+(w/2)+"' y='"+(h*0.38)+"' fill='"+hex+"' font-family='sans-serif' font-size='"+Math.round(Math.min(w,h)*0.12)+"' font-weight='700' text-anchor='middle' opacity='.35'>"+abbr+"</text>"
-    +"<text x='"+(w/2)+"' y='"+(h*0.48)+"' fill='#9fb0d0' font-family='monospace' font-size='"+Math.round(Math.min(w,h)*0.045)+"' text-anchor='middle' letter-spacing='3'>STADIUM PHOTO</text>"
-    +"<text x='"+(w/2)+"' y='"+(h*0.48+Math.min(w,h)*0.06)+"' fill='#5d72a6' font-family='monospace' font-size='"+Math.round(Math.min(w,h)*0.035)+"' text-anchor='middle'>"+label+"</text>"
-    +"</svg>";
-  return "data:image/svg+xml,"+encodeURIComponent(svg);
-}
-function stadiumPhoto(s,idx){
-  if(s[5]) return s[5];
-  const hex=LEAGUE_HEX[s[0]];
-  const [pw,ph]=MOCK_SIZES[idx % MOCK_SIZES.length];
-  return mockPhoto(pw,ph,hex,pw+"\u00d7"+ph,s[1]);
-}
-
-const VIEW_W=960, VIEW_H=560, ROUNDS=5, MAX_PER=5000, PHOTOS_ONLY=true;
+const VIEW_W=960, VIEW_H=560, ROUNDS=5, MAX_PER=5000;
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 function haversineMi(lat1,lon1,lat2,lon2){const R=3958.8,t=Math.PI/180;const dLat=(lat2-lat1)*t,dLon=(lon2-lon1)*t;const a=Math.sin(dLat/2)**2+Math.cos(lat1*t)*Math.cos(lat2*t)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(a));}
 function pointsFor(mi){return Math.round(MAX_PER*Math.exp(-mi/240));}
@@ -283,15 +245,14 @@ let deck, idx, total, results, projection, locked, guessLL;
 
 function start(){
   document.body.classList.add("playing");
-  const pool=PHOTOS_ONLY?STADIUMS.filter(s=>s[5]):STADIUMS;
-  deck=shuffle(pool).slice(0,Math.min(ROUNDS,pool.length));
+  deck=shuffle(STADIUMS).slice(0,Math.min(ROUNDS,STADIUMS.length));
   idx=0; total=0; results=[]; showBest(); renderRound();
 }
 
 function renderRound(){
   locked=false; guessLL=null;
   const s=deck[idx], hex=LEAGUE_HEX[s[0]];
-  const src=stadiumPhoto(s,idx);
+  const src=s[5];
   document.getElementById("mRound").textContent=(idx+1)+"/"+deck.length;
   document.getElementById("mScore").textContent=commaNum(total);
   document.getElementById("game").innerHTML=`
