@@ -408,11 +408,13 @@ function endGame(){
   showBest();
   document.getElementById("mRound").textContent=deck.length+"/"+deck.length;
   const rows=results.map(r=>`<div class="brow"><span class="bteam">${r.team}</span><span class="bdist num ${distClass(r.mi)}">${commaNum(Math.round(r.mi))} mi</span><span class="bpts num">+${commaNum(r.pts)}</span></div>`).join("");
-  const shareText=`Stadium IQ: ${commaNum(total)}/${commaNum(maxScore)} \u2014 avg ${commaNum(Math.round(avgMi))} mi off`;
+  const gameUrl=location.origin+location.pathname.replace(/index\.html$/,"");
+  const shareScore=`Stadium IQ: ${commaNum(total)}/${commaNum(maxScore)} \u2014 avg ${commaNum(Math.round(avgMi))} mi off`;
+  const shareText=`${shareScore}\n${gameUrl}`;
   document.getElementById("game").innerHTML=`<div class="end"><div class="grade" style="color:${gc}">${g}</div><div class="endscore">Final score &nbsp;<b class="num">${commaNum(total)}</b>&nbsp;/ ${commaNum(maxScore)}</div>${isNew?`<div class="hiscore new">New personal best!</div>`:(prevBest!=null?`<div class="hiscore">Personal best: ${commaNum(prevBest)}</div>`:"")}<div class="stats"><div class="stat"><div class="sk">Avg distance</div><div class="sv num">${commaNum(Math.round(avgMi))} mi</div></div><div class="stat"><div class="sk">Closest guess</div><div class="sv num">${commaNum(Math.round(best.mi))} mi</div></div><div class="stat"><div class="sk">Accuracy</div><div class="sv num">${Math.round(pct*100)}%</div></div></div><div class="breakdown">${rows}</div><div class="endbtns"><button id="again">Play again</button><button class="ghost" id="share">Share score</button></div></div>`;
   document.getElementById("again").onclick=start;
   document.getElementById("share").onclick=()=>{
-    if(navigator.share) navigator.share({title:"Stadium IQ",text:shareText}).catch(()=>{});
+    if(navigator.share) navigator.share({title:"Stadium IQ",text:shareScore,url:gameUrl}).catch(()=>{});
     else navigator.clipboard.writeText(shareText).then(()=>{document.getElementById("share").textContent="Copied!";});
   };
 }
