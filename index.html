@@ -327,9 +327,13 @@ function drawMap(){
   el.addEventListener("touchstart",onMapTouch,{passive:false});
 }
 function svgXY(evt){
-  const svg=document.getElementById("map"), r=svg.getBoundingClientRect();
-  const pt=evt.touches?evt.touches[0]:evt.changedTouches?evt.changedTouches[0]:evt;
-  return [(pt.clientX-r.left)/r.width*VIEW_W,(pt.clientY-r.top)/r.height*VIEW_H];
+  const svg=document.getElementById("map");
+  const clientPt=evt.touches?evt.touches[0]:evt.changedTouches?evt.changedTouches[0]:evt;
+  const pt=svg.createSVGPoint();
+  pt.x=clientPt.clientX;
+  pt.y=clientPt.clientY;
+  const svgPt=pt.matrixTransform(svg.getScreenCTM().inverse());
+  return [svgPt.x,svgPt.y];
 }
 function placePin(x,y,ll){
   guessLL=ll;
