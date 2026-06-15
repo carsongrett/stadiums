@@ -79,7 +79,7 @@
   .mapwrap{position:relative; background:var(--bg2); border:1px solid var(--line);
     border-radius:14px; overflow:hidden;}
   body.playing .mapwrap{flex:1; min-height:0; display:flex; align-items:center; justify-content:center; border-radius:10px}
-  svg.map{display:block; width:100%; height:auto; cursor:crosshair; touch-action:manipulation;}
+  svg.map{display:block; width:100%; height:auto; cursor:crosshair; touch-action:pan-x pan-y pinch-zoom;}
   body.playing svg.map{flex:0 1 auto; width:100%; height:auto; max-height:100%; min-height:0}
   .state{fill:var(--land); stroke:var(--border); stroke-width:1; vector-effect:non-scaling-stroke;
     stroke-linejoin:round; transition:fill .12s;}
@@ -136,7 +136,9 @@
   body.playing .photo{flex-shrink:0; margin-bottom:8px}
 
   @media (max-width:640px){
-    body.playing #app{max-width:none; padding:max(8px, env(safe-area-inset-top)) 10px 0}
+    body.playing{overflow-y:auto; overflow-x:hidden; touch-action:pan-x pan-y pinch-zoom}
+    body.playing #app{height:auto; min-height:100dvh; max-width:none; padding:max(8px, env(safe-area-inset-top)) 10px 0}
+    body.playing #game{overflow:visible}
     body.playing .top{margin-bottom:6px}
     body.playing .brand{font-size:17px}
     body.playing .meters{gap:14px}
@@ -298,7 +300,28 @@ function drawMap(){
   svg.append("g").attr("id","pins");
   const el=document.getElementById("map");
   el.addEventListener("click",onMapClick);
-  el.addEventListener("touchstart",onMapTouch,{passive:false});
+  el.addEventListener("touchstart",onMapTouchStart,{passive:true});
+  el.addEventListener("touchend",onMapTouchEnd,{passive:false});
+}
+let mapTouch=null, mapTouchHandled=false;
+function onMapTouchStart(evt){
+  if(locked||evt.touches.length>1){mapTouch=null; return;}
+  const t=evt.touches[0];
+  mapTouch={x:t.clientX,y:t.clientY};
+}
+function onMapTouchEnd(evt){
+  if(locked||!mapTouch) return;
+  const t=evt.changedTouches[0];
+  if(!t){mapTouch=null; return;}
+  const dx=t.clientX-mapTouch.x, dy=t.clientY-mapTouch.y;
+  mapTouch=null;
+  if(Math.hypot(dx,dy)>12) return;
+  const [x,y]=svgXY(evt);
+  const ll=projection.invert([x,y]);
+  if(!ll) return;
+  mapTouchHandled=true;
+  setTimeout(()=>{mapTouchHandled=false},400);
+  placePin(x,y,ll);
 }
 function svgXY(evt){
   const svg=document.getElementById("map");
@@ -318,8 +341,7 @@ function placePin(x,y,ll){
   document.getElementById("action").disabled=false;
   document.getElementById("hint").textContent="Tap to lock in";
 }
-function onMapClick(evt){if(locked) return; const [x,y]=svgXY(evt); const ll=projection.invert([x,y]); if(!ll) return; placePin(x,y,ll);}
-function onMapTouch(evt){if(locked) return; evt.preventDefault(); const [x,y]=svgXY(evt); const ll=projection.invert([x,y]); if(!ll) return; placePin(x,y,ll);}
+function onMapClick(evt){if(locked||mapTouchHandled) return; const [x,y]=svgXY(evt); const ll=projection.invert([x,y]); if(!ll) return; placePin(x,y,ll);}
 function onAction(){
   if(!locked){lockIn();}
   else{document.removeEventListener("keydown",onKey); idx++; if(idx>=deck.length) endGame(); else renderRound();}
