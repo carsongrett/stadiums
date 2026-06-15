@@ -206,14 +206,15 @@
 const STADIUMS = [
   ["NBA","San Antonio Spurs","Frost Bank Center",29.4269,-98.4375],
   ["MLB","Houston Astros","Daikin Park",29.7572,-95.3556],
-  ["NFL","Green Bay Packers","Lambeau Field",44.5013,-88.0622],
+  ["NFL","Green Bay Packers","Lambeau Field",44.5013,-88.0622,"images/nfl-packers-lambeau.jpg"],
   ["NFL","Kansas City Chiefs","Arrowhead Stadium",39.0489,-94.4839],
   ["NFL","Seattle Seahawks","Lumen Field",47.5952,-122.3316],
   ["NFL","Dallas Cowboys","AT&T Stadium",32.7473,-97.0945],
-  ["NFL","New England Patriots","Gillette Stadium",42.0909,-71.2643],
+  ["NFL","New England Patriots","Gillette Stadium",42.0909,-71.2643,"images/nfl-patriots-gillette.jpg"],
   ["NFL","Denver Broncos","Empower Field at Mile High",39.7439,-105.0201],
   ["NFL","Chicago Bears","Soldier Field",41.8623,-87.6167],
-  ["NFL","Pittsburgh Steelers","Acrisure Stadium",40.4468,-80.0158],
+  ["NFL","Pittsburgh Steelers","Acrisure Stadium",40.4468,-80.0158,"images/nfl-steelers-acrisure.webp"],
+  ["NFL","Indianapolis Colts","Lucas Oil Stadium",39.7600,-86.1637,"images/nfl-colts-lucas-oil.jpg"],
   ["MLB","Boston Red Sox","Fenway Park",42.3467,-71.0972],
   ["MLB","Chicago Cubs","Wrigley Field",41.9484,-87.6553],
   ["MLB","Los Angeles Dodgers","Dodger Stadium",34.0739,-118.24],
@@ -232,8 +233,6 @@ const LEAGUE_HEX = {MLB:"#d24b4b", NFL:"#5b9cff", NBA:"#c07bff"};
 const HS_KEY = "stadiumIQ_best";
 const PERFECT_MI = 25;
 
-/* MOCK photos at deliberately mismatched native sizes to prove uniform framing.
-   Replace mockPhoto(...) with your real image URL per stadium later. */
 const MOCK_SIZES = [[1600,900],[1080,1350],[1000,1000],[2000,840],[1200,1600]];
 function mockPhoto(w,h,hex,label,team){
   const abbr=team.split(" ").pop().slice(0,3).toUpperCase();
@@ -252,8 +251,14 @@ function mockPhoto(w,h,hex,label,team){
     +"</svg>";
   return "data:image/svg+xml,"+encodeURIComponent(svg);
 }
+function stadiumPhoto(s,idx){
+  if(s[5]) return s[5];
+  const hex=LEAGUE_HEX[s[0]];
+  const [pw,ph]=MOCK_SIZES[idx % MOCK_SIZES.length];
+  return mockPhoto(pw,ph,hex,pw+"\u00d7"+ph,s[1]);
+}
 
-const VIEW_W=960, VIEW_H=560, ROUNDS=5, MAX_PER=5000;
+const VIEW_W=960, VIEW_H=560, ROUNDS=5, MAX_PER=5000, PHOTOS_ONLY=true;
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 function haversineMi(lat1,lon1,lat2,lon2){const R=3958.8,t=Math.PI/180;const dLat=(lat2-lat1)*t,dLon=(lon2-lon1)*t;const a=Math.sin(dLat/2)**2+Math.cos(lat1*t)*Math.cos(lat2*t)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(a));}
 function pointsFor(mi){return Math.round(MAX_PER*Math.exp(-mi/240));}
@@ -274,14 +279,18 @@ const US = {"type":"FeatureCollection","features":[{"type":"Feature","properties
 const US48={type:"FeatureCollection",features:US.features.filter(f=>f.properties.name!=="Alaska"&&f.properties.name!=="Hawaii")};
 let deck, idx, total, results, projection, locked, guessLL;
 
-function start(){document.body.classList.add("playing");deck=shuffle(STADIUMS).slice(0,ROUNDS);idx=0;total=0;results=[];showBest();renderRound();}
+function start(){
+  document.body.classList.add("playing");
+  const pool=PHOTOS_ONLY?STADIUMS.filter(s=>s[5]):STADIUMS;
+  deck=shuffle(pool).slice(0,Math.min(ROUNDS,pool.length));
+  idx=0; total=0; results=[]; showBest(); renderRound();
+}
 
 function renderRound(){
   locked=false; guessLL=null;
   const s=deck[idx], hex=LEAGUE_HEX[s[0]];
-  const [pw,ph]=MOCK_SIZES[idx % MOCK_SIZES.length];
-  const src=mockPhoto(pw,ph,hex, pw+"\u00d7"+ph, s[1]);
-  document.getElementById("mRound").textContent=(idx+1)+"/"+ROUNDS;
+  const src=stadiumPhoto(s,idx);
+  document.getElementById("mRound").textContent=(idx+1)+"/"+deck.length;
   document.getElementById("mScore").textContent=commaNum(total);
   document.getElementById("game").innerHTML=`
     <div class="round">
@@ -350,7 +359,7 @@ function onMapClick(evt){if(locked) return; const [x,y]=svgXY(evt); const ll=pro
 function onMapTouch(evt){if(locked) return; evt.preventDefault(); const [x,y]=svgXY(evt); const ll=projection.invert([x,y]); if(!ll) return; placePin(x,y,ll);}
 function onAction(){
   if(!locked){lockIn();}
-  else{document.removeEventListener("keydown",onKey); idx++; if(idx>=ROUNDS) endGame(); else renderRound();}
+  else{document.removeEventListener("keydown",onKey); idx++; if(idx>=deck.length) endGame(); else renderRound();}
 }
 
 function lockIn(){
@@ -378,22 +387,23 @@ function lockIn(){
   res.classList.add("show");
   document.getElementById("hint").textContent=s[2]+" \u2014 "+s[1];
   document.getElementById("action").disabled=false;
-  document.getElementById("action").textContent=(idx+1>=ROUNDS)?"Results":"Next";
+  document.getElementById("action").textContent=(idx+1>=deck.length)?"Results":"Next";
 }
 function gradeFor(p){if(p>=.8)return["All-Pro","var(--amber)"];if(p>=.6)return["Starter","var(--turf)"];if(p>=.4)return["Role Player","var(--nfl)"];return["Benchwarmer","var(--muted)"];}
 function endGame(){
   document.body.classList.remove("playing");
   document.removeEventListener("keydown",onKey);
-  const pct=total/(ROUNDS*MAX_PER); const [g,gc]=gradeFor(pct);
+  const maxScore=deck.length*MAX_PER;
+  const pct=total/maxScore; const [g,gc]=gradeFor(pct);
   const avgMi=results.reduce((a,r)=>a+r.mi,0)/results.length;
   const best=results.reduce((a,r)=>r.mi<a.mi?r:a,results[0]);
   const prevBest=getBest(), isNew=prevBest==null||total>prevBest;
   if(isNew) setBest(total);
   showBest();
-  document.getElementById("mRound").textContent=ROUNDS+"/"+ROUNDS;
+  document.getElementById("mRound").textContent=deck.length+"/"+deck.length;
   const rows=results.map(r=>`<div class="brow"><span class="bteam">${r.team}</span><span class="bdist num ${distClass(r.mi)}">${commaNum(Math.round(r.mi))} mi</span><span class="bpts num">+${commaNum(r.pts)}</span></div>`).join("");
-  const shareText=`Stadium IQ: ${commaNum(total)}/${commaNum(ROUNDS*MAX_PER)} (${g}) \u2014 avg ${commaNum(Math.round(avgMi))} mi off`;
-  document.getElementById("game").innerHTML=`<div class="end"><div class="grade" style="color:${gc}">${g}</div><div class="endscore">Final score &nbsp;<b class="num">${commaNum(total)}</b>&nbsp;/ ${commaNum(ROUNDS*MAX_PER)}</div>${isNew?`<div class="hiscore new">New personal best!</div>`:(prevBest!=null?`<div class="hiscore">Personal best: ${commaNum(prevBest)}</div>`:"")}<div class="stats"><div class="stat"><div class="sk">Avg distance</div><div class="sv num">${commaNum(Math.round(avgMi))} mi</div></div><div class="stat"><div class="sk">Closest guess</div><div class="sv num">${commaNum(Math.round(best.mi))} mi</div></div><div class="stat"><div class="sk">Accuracy</div><div class="sv num">${Math.round(pct*100)}%</div></div></div><div class="breakdown">${rows}</div><div class="endbtns"><button id="again">Play again</button><button class="ghost" id="share">Share score</button></div></div>`;
+  const shareText=`Stadium IQ: ${commaNum(total)}/${commaNum(maxScore)} (${g}) \u2014 avg ${commaNum(Math.round(avgMi))} mi off`;
+  document.getElementById("game").innerHTML=`<div class="end"><div class="grade" style="color:${gc}">${g}</div><div class="endscore">Final score &nbsp;<b class="num">${commaNum(total)}</b>&nbsp;/ ${commaNum(maxScore)}</div>${isNew?`<div class="hiscore new">New personal best!</div>`:(prevBest!=null?`<div class="hiscore">Personal best: ${commaNum(prevBest)}</div>`:"")}<div class="stats"><div class="stat"><div class="sk">Avg distance</div><div class="sv num">${commaNum(Math.round(avgMi))} mi</div></div><div class="stat"><div class="sk">Closest guess</div><div class="sv num">${commaNum(Math.round(best.mi))} mi</div></div><div class="stat"><div class="sk">Accuracy</div><div class="sv num">${Math.round(pct*100)}%</div></div></div><div class="breakdown">${rows}</div><div class="endbtns"><button id="again">Play again</button><button class="ghost" id="share">Share score</button></div></div>`;
   document.getElementById("again").onclick=start;
   document.getElementById("share").onclick=()=>{
     if(navigator.share) navigator.share({title:"Stadium IQ",text:shareText}).catch(()=>{});
